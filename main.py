@@ -116,7 +116,7 @@ class Ship:
 
 
 class Player(Ship):
-    def __init__(self, x, y, health=100):
+    def __init__(self, x, y, health=1):
         super().__init__(x, y, health)
         self.ship_img = YELLOW_SPACE_SHIP
         self.laser_img = YELLOW_LASER
@@ -175,6 +175,16 @@ def main():
     run = True
     level = 0
     lives = 3
+
+    score = 0
+    hiscore = 0
+    try:
+        if os.path.exists(os.path.join("hi-score.txt")):
+            hiscore_file = open("hi-score.txt", "r")
+            hiscore = int(hiscore_file.readline())
+    except:
+        print("Hi-Score file could not be read.")
+
     main_font = pygame.font.SysFont("arial", 50)
     start_font = pygame.font.SysFont("arial", 60)
     lost_font = pygame.font.SysFont("arial", 60)
@@ -206,10 +216,14 @@ def main():
         # text objects
         lives_label = main_font.render(f"Lives: {lives}", 1, (255, 255, 255))
         level_label = main_font.render(f"Level: {level}", 1, (255, 255, 255))
+        score_label = main_font.render(f"Score: {score}", 1, (255, 255, 255))
+        hiscore_label = main_font.render(f"Hi-Score: {hiscore}", 1, (255, 255, 255))
 
         # draw text to screen
         WIN.blit(lives_label, (10, HEIGHT - 10 - lives_label.get_height()))
         WIN.blit(level_label, (WIDTH - level_label.get_width() - 10, HEIGHT - 10 - level_label.get_height()))
+        WIN.blit(score_label, (10, 10))
+        WIN.blit(hiscore_label, (WIDTH - hiscore_label.get_width() - 10, 10))
         pygame.draw.rect(WIN, (255, 255, 255), (0, HEIGHT - 25 - lives_label.get_height(), WIDTH, 3))
 
         # redraw player, enemy, and laser sprites
@@ -237,11 +251,32 @@ def main():
         clock.tick(FPS)
         redraw_window()
 
-        if lives <= 0 or player.health <= 0:
-            lost = True
-            lost_count += 1
+        if player.health <= 0:
+            if lives > 0:
+                lives -= 1
 
-            # display game over msg for 5 seconds
+            if lives <= 0:  # game over
+                lost = True
+                lost_count += 1
+
+                # save hi-score in text file
+                try:
+                    if score > hiscore:
+                        new_score_file = open("hi-score.txt", 'w')
+                        new_score_file.write(str(score))
+                        new_score_file.write('\n')
+                        new_score_file.close()
+                except:
+                    print("Hi-Score file could not be written.")
+            else:  # player loses a life and respawns
+                player = Player(WIDTH/2 - YELLOW_SPACE_SHIP.get_width()/2, 825)
+                # remove enemy lasers
+                for alaser in lasers[:]:
+                    if alaser.enemy:
+                        if alaser in lasers:
+                            lasers.remove(alaser)
+
+        # display start msg for 2 seconds
         if start:
             if start_count > FPS * 2:
                 start = False
@@ -249,7 +284,7 @@ def main():
                 start_count += 1
                 continue
 
-        # display game over msg for 5 seconds
+        # display game over msg for 3 seconds
         if lost:
             if lost_count > FPS * 3:
                 main_menu()
@@ -264,35 +299,35 @@ def main():
             for i in range(enemy_col):
                 # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
                 #              random.choice(["red", "blue", "green"]))
-                enemy = Enemy(10 + 60 * i, 10, "blue")
+                enemy = Enemy(10 + 60 * i, 70, "blue")
                 enemies.append(enemy)
 
             # place middle enemies
             for i in range(enemy_col):
                 # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
                 #              random.choice(["red", "blue", "green"]))
-                enemy = Enemy(60 * i, 60, "green")
+                enemy = Enemy(60 * i, 120, "green")
                 enemies.append(enemy)
 
             # place middle enemies
             for i in range(enemy_col):
                 # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
                 #              random.choice(["red", "blue", "green"]))
-                enemy = Enemy(60 * i, 110, "green")
+                enemy = Enemy(60 * i, 170, "green")
                 enemies.append(enemy)
 
             # place bottom enemies
             for i in range(enemy_col):
                 # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
                 #              random.choice(["red", "blue", "green"]))
-                enemy = Enemy(60 * i, 160, "red")
+                enemy = Enemy(60 * i, 220, "red")
                 enemies.append(enemy)
 
             # place bottom enemies
             for i in range(enemy_col):
                 # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
                 #              random.choice(["red", "blue", "green"]))
-                enemy = Enemy(60 * i, 210, "red")
+                enemy = Enemy(60 * i, 270, "red")
                 enemies.append(enemy)
 
         for event in pygame.event.get():
@@ -360,8 +395,9 @@ def main():
             if collide(enemy, player):
                 player.health -= 10
                 enemies.remove(enemy)
-            elif enemy.y + enemy.get_height() > HEIGHT:
-                lives -= 1
+            elif enemy.y + enemy.get_height() > player.y:
+                lives = 0
+                player.health = 0
                 enemies.remove(enemy)
 
         player.cooldown()
@@ -376,6 +412,8 @@ def main():
                 laser_collide = laser.move_laser(laser_vel, enemies=enemies)
                 if laser_collide:
                     lasers.remove(laser)
+                    if laser_collide == 2:
+                        score += 10
 
 
 def main_menu():
