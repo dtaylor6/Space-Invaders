@@ -1,10 +1,11 @@
 import pygame
 import os
 import random
+from time import sleep
 
 pygame.font.init()
 
-WIDTH, HEIGHT = 750, 750  # resolution
+WIDTH, HEIGHT = 1000, 1000  # resolution
 FPS = 60  # frame rate
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space Invaders")
@@ -15,13 +16,13 @@ GREEN_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_green_sm
 BLUE_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_blue_small.png"))
 
 # Player ship
-YELLOW_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_yellow.png"))
+YELLOW_SPACE_SHIP = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_ship_yellow.png")), (50, 50))
 
 # Lasers
-RED_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_red.png"))
-GREEN_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_green.png"))
-BLUE_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_blue.png"))
-YELLOW_LASER = pygame.image.load(os.path.join("assets", "pixel_laser_yellow.png"))
+RED_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_laser_red.png")), (50, 60))
+GREEN_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_laser_green.png")), (50, 60))
+BLUE_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_laser_blue.png")), (50, 60))
+YELLOW_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_laser_yellow.png")), (50, 60))
 
 # Background
 BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background-black.png")), (WIDTH, HEIGHT))
@@ -145,8 +146,23 @@ class Enemy(Ship):
         self.ship_img, self.laser_img = self.COLOR_MAP[color]
         self.mask = pygame.mask.from_surface(self.ship_img)
 
-    def move(self, vel):
-        self.y += vel
+    # return 1 if the enemy will collide with the edge of the screen
+    def move(self, velx, vely):
+        self.x += velx
+        self.y += vely
+
+        if self.x + velx + self.get_width() >= WIDTH:
+            return 1
+        else:
+            return 0
+
+    def edge_collide(self, vel, left):
+        if not left and self.x + vel + self.get_width() >= WIDTH:  # collide with edge while moving right
+            return 1
+        elif left and self.x - vel <= 0:  # collide with edge while moving left
+            return 1
+        else:
+            return 0
 
 
 def collide(obj1, obj2):
@@ -158,22 +174,28 @@ def collide(obj1, obj2):
 def main():
     run = True
     level = 0
-    lives = 5
+    lives = 3
     main_font = pygame.font.SysFont("arial", 50)
+    start_font = pygame.font.SysFont("arial", 60)
     lost_font = pygame.font.SysFont("arial", 60)
 
-    wave_length = 5
-    enemy_vel = 1
+    enemy_col = 10  # number of invaders per row
+    enemy_velx = 1  # how fast enemies shuffle horizontally
+    enemy_vely = 50  # how far enemies fall down
+    enemy_fire_prob = 25  # probability of enemies firing. higher number means less likely
+    moving_left = False
 
     player_vel = 5
     laser_vel = 5
 
-    player = Player(300, 630)
+    player = Player(WIDTH/2 - YELLOW_SPACE_SHIP.get_width()/2, 825)
     enemies = []
     lasers = []
 
     clock = pygame.time.Clock()
 
+    start = True
+    start_count = 0
     lost = False
     lost_count = 0
 
@@ -186,8 +208,9 @@ def main():
         level_label = main_font.render(f"Level: {level}", 1, (255, 255, 255))
 
         # draw text to screen
-        WIN.blit(lives_label, (10, 10))
-        WIN.blit(level_label, (WIDTH - level_label.get_width() - 10, 10))
+        WIN.blit(lives_label, (10, HEIGHT - 10 - lives_label.get_height()))
+        WIN.blit(level_label, (WIDTH - level_label.get_width() - 10, HEIGHT - 10 - level_label.get_height()))
+        pygame.draw.rect(WIN, (255, 255, 255), (0, HEIGHT - 25 - lives_label.get_height(), WIDTH, 3))
 
         # redraw player, enemy, and laser sprites
         player.draw(WIN)
@@ -197,6 +220,11 @@ def main():
 
         for laser_sprite in lasers:
             laser_sprite.draw(WIN)
+
+        # display start message at game beginning
+        if start:
+            start_label = start_font.render("Start", 1, (255, 255, 255))
+            WIN.blit(start_label, (WIDTH / 2 - start_label.get_width() / 2, 350))
 
         # display game over message if player loses
         if lost:
@@ -213,6 +241,14 @@ def main():
             lost = True
             lost_count += 1
 
+            # display game over msg for 5 seconds
+        if start:
+            if start_count > FPS * 2:
+                start = False
+            else:
+                start_count += 1
+                continue
+
         # display game over msg for 5 seconds
         if lost:
             if lost_count > FPS * 3:
@@ -220,12 +256,43 @@ def main():
             else:
                 continue
 
+        # spawn enemies for new round
         if len(enemies) == 0:
             level += 1
-            wave_length += 5
-            for i in range(wave_length):
-                enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
-                              random.choice(["red", "blue", "green"]))
+
+            # place top enemies
+            for i in range(enemy_col):
+                # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
+                #              random.choice(["red", "blue", "green"]))
+                enemy = Enemy(10 + 60 * i, 10, "blue")
+                enemies.append(enemy)
+
+            # place middle enemies
+            for i in range(enemy_col):
+                # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
+                #              random.choice(["red", "blue", "green"]))
+                enemy = Enemy(60 * i, 60, "green")
+                enemies.append(enemy)
+
+            # place middle enemies
+            for i in range(enemy_col):
+                # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
+                #              random.choice(["red", "blue", "green"]))
+                enemy = Enemy(60 * i, 110, "green")
+                enemies.append(enemy)
+
+            # place bottom enemies
+            for i in range(enemy_col):
+                # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
+                #              random.choice(["red", "blue", "green"]))
+                enemy = Enemy(60 * i, 160, "red")
+                enemies.append(enemy)
+
+            # place bottom enemies
+            for i in range(enemy_col):
+                # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
+                #              random.choice(["red", "blue", "green"]))
+                enemy = Enemy(60 * i, 210, "red")
                 enemies.append(enemy)
 
         for event in pygame.event.get():
@@ -246,17 +313,17 @@ def main():
         elif keys[pygame.K_RIGHT] and player.x + player_vel + player.get_width() < WIDTH:
             player.x += player_vel
 
-        # move up
-        if keys[pygame.K_w] and player.y - player_vel > 0:
-            player.y -= player_vel
-        elif keys[pygame.K_UP] and player.y - player_vel > 0:
-            player.y -= player_vel
-
-        # move down
-        if keys[pygame.K_s] and player.y + player_vel + player.get_height() + 15 < HEIGHT:
-            player.y += player_vel
-        elif keys[pygame.K_DOWN] and player.y + player_vel + player.get_height() + 15 < HEIGHT:
-            player.y += player_vel
+        # # move up
+        # if keys[pygame.K_w] and player.y - player_vel > 0:
+        #     player.y -= player_vel
+        # elif keys[pygame.K_UP] and player.y - player_vel > 0:
+        #     player.y -= player_vel
+        #
+        # # move down
+        # if keys[pygame.K_s] and player.y + player_vel + player.get_height() + 15 < HEIGHT:
+        #     player.y += player_vel
+        # elif keys[pygame.K_DOWN] and player.y + player_vel + player.get_height() + 15 < HEIGHT:
+        #     player.y += player_vel
 
         # shoot laser
         if keys[pygame.K_SPACE]:
@@ -264,11 +331,28 @@ def main():
                 player_laser = Laser(player.x, player.y, player.laser_img, False)
                 lasers.append(player_laser)
 
+        # check if the enemies need to all be shuffled down
+        move_down = False
         for enemy in enemies[:]:
-            enemy.move(enemy_vel)
+            if enemy.edge_collide(enemy_velx, moving_left):
+                move_down = True
+                moving_left = not moving_left
+                break
+
+        for enemy in enemies[:]:
+            if move_down:
+                if not moving_left:
+                    enemy.move(enemy_velx, enemy_vely)
+                else:
+                    enemy.move(-enemy_velx, enemy_vely)
+            else:
+                if not moving_left:
+                    enemy.move(enemy_velx, 0)
+                else:
+                    enemy.move(-enemy_velx, 0)
             enemy.cooldown()
 
-            if random.randrange(0, 2 * FPS) == 1:
+            if random.randrange(0, enemy_fire_prob * FPS) == 1:
                 if enemy.shoot():
                     enemy_laser = Laser(enemy.x - 10, enemy.y, enemy.laser_img, True)
                     lasers.append(enemy_laser)
