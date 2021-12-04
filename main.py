@@ -1,8 +1,8 @@
 import pygame
 import os
 import random
-from time import sleep
 
+pygame.init()
 pygame.font.init()
 
 WIDTH, HEIGHT = 1000, 1000  # resolution
@@ -26,6 +26,9 @@ YELLOW_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "
 
 # Background
 BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background-black.png")), (WIDTH, HEIGHT))
+
+# SFX
+LASER_SFX = pygame.mixer.Sound(os.path.join("assets", "laser.wav"))
 
 
 class Laser:
@@ -104,6 +107,7 @@ class Ship:
     def shoot(self):
         if self.cool_down_counter == 0:
             self.cool_down_counter = 1
+            pygame.mixer.Sound.play(LASER_SFX)
             return 1
         else:
             return 0
@@ -131,7 +135,7 @@ class Player(Ship):
 
     def draw(self, window):
         super().draw(window)
-        self.healthbar(window)
+        #self.healthbar(window)
 
 
 class Enemy(Ship):
@@ -417,21 +421,75 @@ def main():
 
 
 def main_menu():
-    title_font = pygame.font.SysFont("arial", 70)
-    run = True
+    clock = pygame.time.Clock()
+    click = False
 
-    while run:
+    difficulty = ["Difficulty: Easy", "Difficulty: Normal", "Difficulty: Hard"]
+    diff_i = 0
+
+    while True:
+        clock.tick(FPS)
         WIN.blit(BG, (0, 0))
-        title_label = title_font.render("Press the mouse to begin...", 1, (255, 255, 255))
-        WIN.blit(title_label, ((WIDTH / 2 - title_label.get_width() / 2), 350))
-        pygame.display.update()
 
+        mx, my = pygame.mouse.get_pos()
+
+        text_color1 = (255, 255, 255)
+        text_color2 = (255, 255, 255)
+        text_color3 = (255, 255, 255)
+
+        button_1 = pygame.Rect(250, 250, 500, 100)
+        button_2 = pygame.Rect(250, 500, 500, 100)
+        button_3 = pygame.Rect(250, 750, 500, 100)
+        # check if menu items were pressed
+        if button_1.collidepoint((mx, my)):
+            text_color1 = (255, 232, 31)
+            if click:
+                main()
+        if button_2.collidepoint((mx, my)):
+            text_color2 = (255, 232, 31)
+            # change difficulty between easy, medium, hard
+            if click:
+                if diff_i == 2:
+                    diff_i = 0
+                else:
+                    diff_i += 1
+        if button_3.collidepoint((mx, my)):
+            text_color3 = (255, 232, 31)
+            if click:
+                pygame.quit()
+
+        pygame.draw.rect(WIN, (19, 17, 17), button_1)
+        pygame.draw.rect(WIN, (19, 17, 17), button_2)
+        pygame.draw.rect(WIN, (19, 17, 17), button_3)
+
+        # display title
+        title_font = pygame.font.SysFont("bauhaus 93", 85)
+        title_label = title_font.render("Space Invaders", 1, (255, 255, 255))
+        WIN.blit(title_label, ((WIDTH / 2 - title_label.get_width() / 2), 60))
+
+        # display menu text labels
+        menu_font = pygame.font.SysFont("arial", 50)
+        play_label = menu_font.render("Start", 1, text_color1)
+        WIN.blit(play_label, ((WIDTH / 2 - play_label.get_width() / 2), 250 + play_label.get_height()/2))
+        diff_label = menu_font.render(difficulty[diff_i], 1, text_color2)
+        WIN.blit(diff_label, ((WIDTH / 2 - diff_label.get_width() / 2), 500 + diff_label.get_height() / 2))
+        exit_label = menu_font.render("Exit", 1, text_color3)
+        WIN.blit(exit_label, ((WIDTH / 2 - exit_label.get_width() / 2), 750 + exit_label.get_height() / 2))
+
+        click = False
+        # check for mouse clicks or exiting the game
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
+                pygame.quit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                main()
-    pygame.quit()
+                if event.button == 1:
+                    click = True
+
+        pygame.display.update()
 
 
 main_menu()
