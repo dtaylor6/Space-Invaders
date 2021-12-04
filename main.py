@@ -119,8 +119,8 @@ class Ship:
 
 
 class Player(Ship):
-    def __init__(self, x, y, health=1, cooldown=30):
-        super().__init__(x, y, health, cooldown)
+    def __init__(self, x, y, health=1, cooldown_time=30):
+        super().__init__(x, y, health, cooldown_time)
         self.ship_img = YELLOW_SPACE_SHIP
         self.laser_img = YELLOW_LASER
         self.mask = pygame.mask.from_surface(self.ship_img)
@@ -216,7 +216,7 @@ def game_main(difficulty):
     player_vel = 5
     laser_vel = laser_vels[difficulty]
 
-    player = Player(WIDTH/2 - YELLOW_SPACE_SHIP.get_width()/2, 825, cooldown=cooldowns[difficulty])
+    player = Player(WIDTH/2 - YELLOW_SPACE_SHIP.get_width()/2, 825, cooldown_time=cooldowns[difficulty])
     enemies = []
     lasers = []
 
@@ -287,7 +287,7 @@ def game_main(difficulty):
                 except:
                     print("Hi-Score file could not be written.")
             else:  # player loses a life and respawns
-                player = Player(WIDTH/2 - YELLOW_SPACE_SHIP.get_width()/2, 825, cooldown=cooldowns[difficulty])
+                player = Player(WIDTH/2 - YELLOW_SPACE_SHIP.get_width()/2, 825, cooldown_time=cooldowns[difficulty])
                 # remove enemy lasers
                 for alaser in lasers[:]:
                     if alaser.enemy:
