@@ -84,21 +84,21 @@ class Laser:
 
 
 class Ship:
-    COOLDOWN = 30
 
-    def __init__(self, x, y, health=100):
+    def __init__(self, x, y, health=100, cooldown_time=30):
         self.x = x
         self.y = y
         self.health = health
         self.ship_img = None
         self.laser_img = None
+        self.cooldown_time = cooldown_time
         self.cool_down_counter = 0
 
     def draw(self, window):
         window.blit(self.ship_img, (self.x, self.y))
 
     def cooldown(self):
-        if self.cool_down_counter >= self.COOLDOWN:
+        if self.cool_down_counter >= self.cooldown_time:
             self.cool_down_counter = 0
         elif self.cool_down_counter > 0:
             self.cool_down_counter += 1
@@ -107,7 +107,6 @@ class Ship:
     def shoot(self):
         if self.cool_down_counter == 0:
             self.cool_down_counter = 1
-            pygame.mixer.Sound.play(LASER_SFX)
             return 1
         else:
             return 0
@@ -120,8 +119,8 @@ class Ship:
 
 
 class Player(Ship):
-    def __init__(self, x, y, health=1):
-        super().__init__(x, y, health)
+    def __init__(self, x, y, health=1, cooldown=30):
+        super().__init__(x, y, health, cooldown)
         self.ship_img = YELLOW_SPACE_SHIP
         self.laser_img = YELLOW_LASER
         self.mask = pygame.mask.from_surface(self.ship_img)
@@ -132,6 +131,15 @@ class Player(Ship):
                                                self.ship_img.get_width(), 10))
         pygame.draw.rect(window, (0, 255, 0), (self.x, self.y + self.ship_img.get_height() + 10,
                                                self.ship_img.get_width() * (self.health / self.max_health), 10))
+
+    # return 0 if no laser is ready to fire or 1 if it is ready to fire
+    def shoot(self):
+        if self.cool_down_counter == 0:
+            self.cool_down_counter = 1
+            pygame.mixer.Sound.play(LASER_SFX)
+            return 1
+        else:
+            return 0
 
     def draw(self, window):
         super().draw(window)
@@ -175,7 +183,7 @@ def collide(obj1, obj2):
     return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) is not None
 
 
-def main():
+def game_main(difficulty):
     run = True
     level = 0
     lives = 3
@@ -193,16 +201,22 @@ def main():
     start_font = pygame.font.SysFont("arial", 60)
     lost_font = pygame.font.SysFont("arial", 60)
 
+    # difficulty parameters (easy, normal, hard)
+    laser_vels = [5, 8, 10]
+    enemy_vels = [1, 3, 6]
+    cooldowns = [30, 15, 10]
+    enemy_fire_probs = [25, 15, 10]
+
     enemy_col = 10  # number of invaders per row
-    enemy_velx = 1  # how fast enemies shuffle horizontally
+    enemy_velx = enemy_vels[difficulty]  # how fast enemies shuffle horizontally
     enemy_vely = 50  # how far enemies fall down
-    enemy_fire_prob = 25  # probability of enemies firing. higher number means less likely
+    enemy_fire_prob = enemy_fire_probs[difficulty]  # probability of enemies firing. higher number means less likely
     moving_left = False
 
     player_vel = 5
-    laser_vel = 5
+    laser_vel = laser_vels[difficulty]
 
-    player = Player(WIDTH/2 - YELLOW_SPACE_SHIP.get_width()/2, 825)
+    player = Player(WIDTH/2 - YELLOW_SPACE_SHIP.get_width()/2, 825, cooldown=cooldowns[difficulty])
     enemies = []
     lasers = []
 
@@ -273,7 +287,7 @@ def main():
                 except:
                     print("Hi-Score file could not be written.")
             else:  # player loses a life and respawns
-                player = Player(WIDTH/2 - YELLOW_SPACE_SHIP.get_width()/2, 825)
+                player = Player(WIDTH/2 - YELLOW_SPACE_SHIP.get_width()/2, 825, cooldown=cooldowns[difficulty])
                 # remove enemy lasers
                 for alaser in lasers[:]:
                     if alaser.enemy:
@@ -399,7 +413,7 @@ def main():
             if collide(enemy, player):
                 player.health -= 10
                 enemies.remove(enemy)
-            elif enemy.y + enemy.get_height() > player.y:
+            elif enemy.y + enemy.get_height() > player.y:  # game over if enemies reach bottom of the screen
                 lives = 0
                 player.health = 0
                 enemies.remove(enemy)
@@ -423,7 +437,6 @@ def main():
 def main_menu():
     clock = pygame.time.Clock()
     click = False
-
     difficulty = ["Difficulty: Easy", "Difficulty: Normal", "Difficulty: Hard"]
     diff_i = 0
 
@@ -444,7 +457,7 @@ def main_menu():
         if button_1.collidepoint((mx, my)):
             text_color1 = (255, 232, 31)
             if click:
-                main()
+                game_main(diff_i)
         if button_2.collidepoint((mx, my)):
             text_color2 = (255, 232, 31)
             # change difficulty between easy, medium, hard
