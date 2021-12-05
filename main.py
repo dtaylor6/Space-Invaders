@@ -449,10 +449,13 @@ def main_menu():
         text_color1 = (255, 255, 255)
         text_color2 = (255, 255, 255)
         text_color3 = (255, 255, 255)
+        text_color4 = (255, 255, 255)
 
         button_1 = pygame.Rect(250, 250, 500, 100)
         button_2 = pygame.Rect(250, 500, 500, 100)
         button_3 = pygame.Rect(250, 750, 500, 100)
+        button_4 = pygame.Rect(0, 950, 200, 75)
+
         # check if menu items were pressed
         if button_1.collidepoint((mx, my)):
             text_color1 = (255, 232, 31)
@@ -470,10 +473,15 @@ def main_menu():
             text_color3 = (255, 232, 31)
             if click:
                 pygame.quit()
+        if button_4.collidepoint((mx, my)):
+            text_color4 = (255, 232, 31)
+            if click:
+                how_to_play()
 
         pygame.draw.rect(WIN, (19, 17, 17), button_1)
         pygame.draw.rect(WIN, (19, 17, 17), button_2)
         pygame.draw.rect(WIN, (19, 17, 17), button_3)
+        pygame.draw.rect(WIN, (19, 17, 17), button_4)
 
         # display title
         title_font = pygame.font.SysFont("bauhaus 93", 85)
@@ -481,13 +489,19 @@ def main_menu():
         WIN.blit(title_label, ((WIDTH / 2 - title_label.get_width() / 2), 60))
 
         # display menu text labels
-        menu_font = pygame.font.SysFont("arial", 50)
+        menu_font = pygame.font.SysFont("arial", 70)
         play_label = menu_font.render("Start", 1, text_color1)
         WIN.blit(play_label, ((WIDTH / 2 - play_label.get_width() / 2), 250 + play_label.get_height()/2))
+
         diff_label = menu_font.render(difficulty[diff_i], 1, text_color2)
         WIN.blit(diff_label, ((WIDTH / 2 - diff_label.get_width() / 2), 500 + diff_label.get_height() / 2))
+
         exit_label = menu_font.render("Exit", 1, text_color3)
         WIN.blit(exit_label, ((WIDTH / 2 - exit_label.get_width() / 2), 750 + exit_label.get_height() / 2))
+
+        help_font = pygame.font.SysFont("arial", 40)
+        help_label = help_font.render("How to Play", 1, text_color4)
+        WIN.blit(help_label, (10, 950))
 
         click = False
         # check for mouse clicks or exiting the game
@@ -495,9 +509,73 @@ def main_menu():
             if event.type == pygame.QUIT:
                 pygame.quit()
 
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+
+        pygame.display.update()
+
+
+def how_to_play():
+    clock = pygame.time.Clock()
+    click = False
+    help_text1 = "Move left = Left  arrow key "
+    help_text2 = "Move right = Right  arrow key"
+    help_text3 = "Shoot = Space bar"
+    help_text4 = "You get 3 lives. Getting hit by an enemy laser takes a life."
+    help_text5 = "Shoot every invader before they reach the bottom of the screen."
+    help_text6 = "If any invaders reach the bottom of the screen it is game over."
+
+    while True:
+        clock.tick(FPS)
+        WIN.blit(BG, (0, 0))
+
+        mx, my = pygame.mouse.get_pos()
+
+        text_color1 = (255, 255, 255)
+
+        return_button = pygame.Rect(250, 850, 500, 100)
+
+        # check if menu items were pressed
+        if return_button.collidepoint((mx, my)):
+            text_color1 = (255, 232, 31)
+            if click:
+                main_menu()
+
+        pygame.draw.rect(WIN, (19, 17, 17), return_button)
+
+        # display title
+        title_font = pygame.font.SysFont("bauhaus 93", 85)
+        title_label = title_font.render("How to Play", 1, (255, 255, 255))
+        WIN.blit(title_label, ((WIDTH / 2 - title_label.get_width() / 2), 60))
+
+        # display control labels
+        help_font = pygame.font.SysFont("arial", 40)
+        help_label1 = help_font.render(help_text1, 1, (255, 255, 255))
+        WIN.blit(help_label1, ((WIDTH / 2 - help_label1.get_width() / 2), 200))
+        help_label2 = help_font.render(help_text2, 1, (255, 255, 255))
+        WIN.blit(help_label2, ((WIDTH / 2 - help_label2.get_width() / 2), 275))
+        help_label3 = help_font.render(help_text3, 1, (255, 255, 255))
+        WIN.blit(help_label3, ((WIDTH / 2 - help_label3.get_width() / 2), 350))
+
+        # display game rule labels
+        help_label4 = help_font.render(help_text4, 1, (255, 255, 255))
+        WIN.blit(help_label4, ((WIDTH / 2 - help_label4.get_width() / 2), 500))
+        help_label5 = help_font.render(help_text5, 1, (255, 255, 255))
+        WIN.blit(help_label5, ((WIDTH / 2 - help_label5.get_width() / 2), 575))
+        help_label6 = help_font.render(help_text6, 1, (255, 255, 255))
+        WIN.blit(help_label6, ((WIDTH / 2 - help_label6.get_width() / 2), 650))
+
+        exit_font = pygame.font.SysFont("arial", 60)
+        exit_label = exit_font.render("Main Menu", 1, text_color1)
+        WIN.blit(exit_label, ((WIDTH / 2 - exit_label.get_width() / 2), 850 + exit_label.get_height() / 2))
+
+        click = False
+        # check for mouse clicks or exiting the game
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     click = True
