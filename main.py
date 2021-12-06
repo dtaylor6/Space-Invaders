@@ -11,18 +11,18 @@ WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space Invaders")
 
 # Load images
-RED_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_red_small.png"))
-GREEN_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_green_small.png"))
-BLUE_SPACE_SHIP = pygame.image.load(os.path.join("assets", "pixel_ship_blue_small.png"))
+RED_SPACE_SHIP = pygame.image.load(os.path.join("assets", "red_spaceship.png"))
+GREEN_SPACE_SHIP = pygame.image.load(os.path.join("assets", "green_spaceship.png"))
+BLUE_SPACE_SHIP = pygame.image.load(os.path.join("assets", "blue_spaceship.png"))
 
 # Player ship
-YELLOW_SPACE_SHIP = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_ship_yellow.png")), (50, 50))
+YELLOW_SPACE_SHIP = pygame.transform.scale(pygame.image.load(os.path.join("assets", "yellow_spaceship.png")), (50, 50))
 
 # Lasers
-RED_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_laser_red.png")), (50, 60))
-GREEN_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_laser_green.png")), (50, 60))
-BLUE_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_laser_blue.png")), (50, 60))
-YELLOW_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "pixel_laser_yellow.png")), (50, 60))
+RED_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "red_laser.png")), (50, 60))
+GREEN_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "green_laser.png")), (50, 60))
+BLUE_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "blue_laser.png")), (50, 60))
+YELLOW_LASER = pygame.transform.scale(pygame.image.load(os.path.join("assets", "yellow_laser.png")), (50, 60))
 
 # Background
 BG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "background-black.png")), (WIDTH, HEIGHT))
@@ -317,35 +317,35 @@ def game_main(difficulty):
             for i in range(enemy_col):
                 # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
                 #              random.choice(["red", "blue", "green"]))
-                enemy = Enemy(10 + 60 * i, 70, "blue")
+                enemy = Enemy(65 * i, 70, "blue")
                 enemies.append(enemy)
 
             # place middle enemies
             for i in range(enemy_col):
                 # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
                 #              random.choice(["red", "blue", "green"]))
-                enemy = Enemy(60 * i, 120, "green")
+                enemy = Enemy(65 * i, 130, "green")
                 enemies.append(enemy)
 
             # place middle enemies
             for i in range(enemy_col):
                 # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
                 #              random.choice(["red", "blue", "green"]))
-                enemy = Enemy(60 * i, 170, "green")
+                enemy = Enemy(65 * i, 180, "green")
                 enemies.append(enemy)
 
             # place bottom enemies
             for i in range(enemy_col):
                 # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
                 #              random.choice(["red", "blue", "green"]))
-                enemy = Enemy(60 * i, 220, "red")
+                enemy = Enemy(65 * i, 230, "red")
                 enemies.append(enemy)
 
             # place bottom enemies
             for i in range(enemy_col):
                 # enemy = Enemy(random.randrange(50, WIDTH - 100), random.randrange(-1500, -100),
                 #              random.choice(["red", "blue", "green"]))
-                enemy = Enemy(60 * i, 270, "red")
+                enemy = Enemy(65 * i, 280, "red")
                 enemies.append(enemy)
 
         for event in pygame.event.get():
